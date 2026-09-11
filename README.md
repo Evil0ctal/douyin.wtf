@@ -21,12 +21,30 @@ reads `vendor/upstream/documents/`, applies the transformations that turn
 GitHub-flavoured markdown into site pages, and writes `src/content/docs/`.
 That directory is generated and git-ignored. Do not edit it.
 
-To pick up new upstream docs:
+### How upstream changes reach the site
+
+Automatically, once a day. The publish workflow runs on a `03:17 UTC` cron, moves
+the submodule to upstream `main`, commits the bump if it moved, and builds in the
+same run. A push made with `GITHUB_TOKEN` does not start another workflow, which
+is what keeps that from looping - and is why the bump and the build are one job
+rather than two.
+
+A push to this repository does *not* move the pointer: a commit already says
+which upstream revision its author meant, and shifting it underneath them would
+publish something nobody asked for.
+
+To pull it in now rather than waiting for the cron, run the workflow by hand
+(`Actions -> Publish site image -> Run workflow`), or locally:
 
 ```bash
 git submodule update --remote
 git commit -am "chore: follow upstream docs"
+git push
 ```
+
+For instant propagation instead of daily, the upstream repository would need to
+fire a `repository_dispatch` at this one when `documents/` changes, which needs a
+PAT stored there. Daily is enough for documentation and costs no secret.
 
 ## Running it
 

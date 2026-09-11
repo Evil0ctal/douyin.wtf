@@ -3,19 +3,19 @@ title: Douyin and TikTok data API, self-hosted
 description: A self-hosted data API for Douyin and TikTok. REST, MCP and a web console, with an identity pool that maintains itself. Open source, free, and it runs on your own machine.
 template: splash
 hero:
-  tagline: One <code>docker compose up</code> gives you a REST API, an MCP server and a web console for Douyin and TikTok — running on your own machine, with an identity pool that maintains itself.
+  tagline: One <code>docker compose up</code> gives you a REST API, an MCP server and a web console for Douyin and TikTok — on your own machine, with an identity pool that maintains itself.
   image:
     file: ../../assets/logo.svg
   actions:
+    - text: Try the live demo
+      link: https://demo.douyin.wtf
+      icon: rocket
     - text: Quick start
       link: /quickstart/
       icon: right-arrow
+      variant: secondary
     - text: GitHub
       link: https://github.com/Evil0ctal/Douyin_TikTok_Download_API
-      icon: external
-      variant: secondary
-    - text: Try the demo
-      link: https://demo.douyin.wtf
       icon: external
       variant: minimal
 head:
@@ -35,16 +35,18 @@ head:
         "programmingLanguage": ["Python", "TypeScript", "Go"],
         "license": "https://www.apache.org/licenses/LICENSE-2.0",
         "isAccessibleForFree": true,
-        "offers": {
-          "@type": "Offer",
-          "price": "0",
-          "priceCurrency": "USD"
-        },
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
         "description": "A self-hosted data API for Douyin and TikTok. REST, MCP and a web console, with a self-maintaining identity pool, a PostgreSQL archive and native request signing."
       }
 ---
 
-import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components'
+import { Aside, Card, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/starlight/components'
+
+<Aside type="tip" title="There is a live instance you can sign in to">
+[**demo.douyin.wtf**](https://demo.douyin.wtf) runs this software and is open to
+everyone. The login page fills in the demo account for you — no registration, no
+key, nothing to install. [How to use it](#try-it-without-installing-anything).
+</Aside>
 
 ## What it is
 
@@ -62,7 +64,8 @@ readable locally.
 <CardGrid stagger>
   <Card title="Three entry points, one service layer" icon="puzzle">
     A REST API with 93 operations, an MCP server for AI agents, and a `dtk` CLI.
-    MCP is not a wrapper around HTTP: all three call the same service layer.
+    MCP is not a wrapper around HTTP: all three call the same service layer, so
+    a tool call skips the second hop and the second authentication.
   </Card>
   <Card title="Cookies stop being a chore" icon="approve-check">
     A headless browser mints guest identities on a timer. The pool tests, cools
@@ -71,7 +74,8 @@ readable locally.
   </Card>
   <Card title="Signing is native Python" icon="seti:python">
     `a_bogus`, `X-Bogus` and the TikTok signatures run in-process in
-    microseconds. The browser is kept as a fallback and as a drift detector.
+    microseconds. The browser stays as a fallback and as a drift detector — it
+    is how the instance notices the platform changed its algorithm.
   </Card>
   <Card title="It tells you when it is unwell" icon="warning">
     Every request is logged with structure. Every identity and every endpoint
@@ -82,24 +86,95 @@ readable locally.
 
 ## Try it without installing anything
 
-[https://demo.douyin.wtf](https://demo.douyin.wtf) is a live instance, open to everyone. The login page
-fills in the demo account for you, and from there the console and the API are
-both usable.
+<CardGrid>
+  <Card title="In the browser" icon="laptop">
+    <Steps>
 
-It is one small server, so it is rate-limited: **30 requests per 10 seconds**,
-and going over puts you in a 10-second cooldown where everything is refused.
-That is the demo's limit, not the software's — your own instance has whatever
-limit you give it.
+    1. Open [demo.douyin.wtf](https://demo.douyin.wtf). The login page arrives
+       with the demo account already filled in.
+    2. Sign in. You land in the console as a `demo` role.
+    3. Go to **Playground**, paste any Douyin or TikTok link, and press Parse.
+
+    </Steps>
+  </Card>
+  <Card title="From a terminal" icon="seti:shell">
+    Nothing to register for: the instance publishes its own demo password at
+    `/api/v1/auth/demo`. The session is a cookie, not a bearer token.
+
+    ```bash
+    PASS=$(curl -s https://demo.douyin.wtf/api/v1/auth/demo | jq -r .data.password)
+
+    curl -s -c jar -o /dev/null \
+      -X POST https://demo.douyin.wtf/api/v1/auth/login \
+      -H 'content-type: application/json' \
+      -d "{\"username\":\"demo\",\"password\":\"$PASS\"}"
+
+    curl -s -b jar -X POST 'https://demo.douyin.wtf/api/v1/parse?wait=25' \
+      -H 'content-type: application/json' \
+      -d '{"url":"https://www.douyin.com/video/7675505205047348543"}' \
+    | jq '.data | {platform, kind, description}'
+    ```
+  </Card>
+</CardGrid>
+
+`?wait=25` is what makes the call synchronous: it holds the connection until the
+task finishes and answers `200` with the result. Leave it off and you get `202`
+with a task id instead, which is the normal asynchronous path. The ceiling on
+this instance is 30 seconds.
+
+The reference is open without a login too —
+[`/swagger`](https://demo.douyin.wtf/swagger),
+[`/redoc`](https://demo.douyin.wtf/redoc) and
+[`/openapi.json`](https://demo.douyin.wtf/openapi.json), in both languages.
+
+<Aside type="caution" title="What the demo is and is not">
+It is one small server, shared by everyone, so it is rate-limited to **30
+requests per 10 seconds**; going over puts you in a **10-second cooldown** where
+every request is refused. That is the demo's limit, not the software's.
+
+The `demo` role reads. It cannot manage identities, edit settings, create keys
+or start downloads, and `explain` and `identity` in the Playground are
+operator-only because both hand back a live credential. Anything you do there is
+visible to whoever looks next — treat it as a public sandbox, and do not paste a
+cookie into it.
+</Aside>
 
 ## Common questions
 
 <LinkCard title="Is this legal?" href="/faq/#is-this-legal" description="What the licence says, what it does not cover, and whose responsibility the answer is." />
 <LinkCard title="Can it download without a watermark?" href="/faq/#can-it-download-without-a-watermark" description="Yes, when the platform serves one — and an exact account of what that means." />
 <LinkCard title="Do I need cookies from my own account?" href="/faq/#do-i-need-cookies-from-my-own-account" description="No. Guest identities are minted for you; your own cookies widen what you can see." />
-<LinkCard title="Do I need proxies?" href="/faq/#do-i-need-proxies" description="Depends entirely on your throughput. The honest version, with numbers." />
+<LinkCard title="Do I need proxies?" href="/faq/#do-i-need-proxies" description="It depends entirely on your throughput. The honest version, with numbers." />
 <LinkCard title="Does it support Bilibili, Xiaohongshu, Kuaishou or Weibo?" href="/faq/#does-it-support-bilibili-xiaohongshu-kuaishou-or-weibo" description="Not yet, and why the architecture leaves room for them." />
 
-## Where to start
+## Run your own
+
+<Tabs>
+  <TabItem label="Docker" icon="seti:docker">
+    ```bash
+    git clone https://github.com/Evil0ctal/Douyin_TikTok_Download_API.git
+    cd Douyin_TikTok_Download_API
+    cp .env.example .env          # then set DTK_SECRET_KEY
+    COMPOSE_ENV_FILES=.env docker compose -p dtk -f docker/compose.yml up -d
+    ```
+
+    Open `http://localhost:8000` and finish the setup in the browser.
+    The long version is in the [quick start](/quickstart/).
+  </TabItem>
+  <TabItem label="Guided installer" icon="seti:powershell">
+    A bash script that works out your distribution, offers the right way to
+    install Docker, scales the container limits to the machine, generates
+    secrets and brings the stack up. Run it again afterwards and it becomes the
+    operations menu: status, upgrade, passwords, backups, settings, disk.
+
+    ```bash
+    bash <(curl -fsSL https://raw.githubusercontent.com/Evil0ctal/Douyin_TikTok_Download_API/main/install/install.sh)
+    ```
+
+    There is a Chinese edition at `install/install.zh.sh`. Both are documented
+    in [installation and deployment](/installation/).
+  </TabItem>
+</Tabs>
 
 <CardGrid>
   <LinkCard title="Quick start" href="/quickstart/" description="The stack running on one host, an administrator account, and one link parsed — about ten minutes." />
@@ -110,5 +185,7 @@ limit you give it.
 
 ---
 
-Apache-2.0. The source, the issue tracker and the releases are on
-[GitHub](https://github.com/Evil0ctal/Douyin_TikTok_Download_API).
+Apache-2.0. Source, issues and releases on
+[GitHub](https://github.com/Evil0ctal/Douyin_TikTok_Download_API) · try it at
+[demo.douyin.wtf](https://demo.douyin.wtf) · read it in
+[简体中文](/zh/).

@@ -7,15 +7,15 @@ hero:
   image:
     file: ../../../assets/logo.svg
   actions:
+    - text: 试试在线演示
+      link: https://demo.douyin.wtf
+      icon: rocket
     - text: 快速开始
       link: /zh/quickstart/
       icon: right-arrow
+      variant: secondary
     - text: GitHub
       link: https://github.com/Evil0ctal/Douyin_TikTok_Download_API
-      icon: external
-      variant: secondary
-    - text: 试试演示站
-      link: https://demo.douyin.wtf
       icon: external
       variant: minimal
 head:
@@ -35,16 +35,18 @@ head:
         "programmingLanguage": ["Python", "TypeScript", "Go"],
         "license": "https://www.apache.org/licenses/LICENSE-2.0",
         "isAccessibleForFree": true,
-        "offers": {
-          "@type": "Offer",
-          "price": "0",
-          "priceCurrency": "USD"
-        },
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
         "description": "自部署的抖音 / TikTok 数据接口服务。REST、MCP 和 Web 控制台，身份池自维护，内容归档在自己的 PostgreSQL 里，签名为纯 Python 实现。"
       }
 ---
 
-import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components'
+import { Aside, Card, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/starlight/components'
+
+<Aside type="tip" title="有一个可以直接登录的在线实例">
+[**demo.douyin.wtf**](https://demo.douyin.wtf) 跑的就是这套软件，对所有人开放。
+登录页会替你填好演示账号 —— 不用注册、不用 key、不用装任何东西。
+[怎么用](#不用装任何东西就能试)。
+</Aside>
 
 ## 这是什么
 
@@ -59,7 +61,8 @@ import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components'
 <CardGrid stagger>
   <Card title="三个入口，一套逻辑" icon="puzzle">
     93 个操作的 REST 接口、给 AI agent 用的 MCP 服务端、以及 `dtk` 命令行。
-    MCP 不是在 HTTP 上再包一层：三者调的是同一个 service 层。
+    MCP 不是在 HTTP 上再包一层：三者调的是同一个 service 层，
+    所以一次工具调用省掉了第二跳和第二次认证。
   </Card>
   <Card title="cookie 不再是负担" icon="approve-check">
     无头浏览器按时铸造游客身份，池子自己测试、冷却和退休它们。
@@ -67,7 +70,7 @@ import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components'
   </Card>
   <Card title="签名是纯 Python" icon="seti:python">
     `a_bogus`、`X-Bogus` 和 TikTok 的签名都在进程内算，微秒级。
-    浏览器只作兜底，以及用来发现算法漂移。
+    浏览器留作兜底，同时也是漂移探测器 —— 平台换了算法，是它先发现的。
   </Card>
   <Card title="它会告诉你自己不舒服" icon="warning">
     每次请求都有结构化记录，每个身份和每个端点都有实时健康度。
@@ -77,11 +80,52 @@ import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components'
 
 ## 不用装任何东西就能试
 
-[https://demo.douyin.wtf](https://demo.douyin.wtf) 是一个对所有人开放的在线实例。登录页会替你填好演示账号，
-进去之后控制台和接口都能用。
+<CardGrid>
+  <Card title="在浏览器里" icon="laptop">
+    <Steps>
 
-它只是一台小服务器，所以有限流：**每 10 秒 30 次请求**，超了会进入 10 秒冷却，
-期间所有请求都会被拒绝。那是演示站的限制，不是软件的 —— 你自己的实例限额由你定。
+    1. 打开 [demo.douyin.wtf](https://demo.douyin.wtf)，登录页已经替你填好演示账号。
+    2. 登录进去，你的角色是 `demo`。
+    3. 进 **调试台**，粘贴任意抖音或 TikTok 链接，点解析。
+
+    </Steps>
+  </Card>
+  <Card title="在终端里" icon="seti:shell">
+    不用注册：演示账号的口令是实例自己在 `/api/v1/auth/demo` 公布的。
+    登录拿到的是会话 cookie，不是 bearer token。
+
+    ```bash
+    PASS=$(curl -s https://demo.douyin.wtf/api/v1/auth/demo | jq -r .data.password)
+
+    curl -s -c jar -o /dev/null \
+      -X POST https://demo.douyin.wtf/api/v1/auth/login \
+      -H 'content-type: application/json' \
+      -d "{\"username\":\"demo\",\"password\":\"$PASS\"}"
+
+    curl -s -b jar -X POST 'https://demo.douyin.wtf/api/v1/parse?wait=25' \
+      -H 'content-type: application/json' \
+      -d '{"url":"https://www.douyin.com/video/7675505205047348543"}' \
+    | jq '.data | {platform, kind, description}'
+    ```
+  </Card>
+</CardGrid>
+
+`?wait=25` 是让这次调用变同步的开关：它会挂住连接直到任务完成，然后用 `200` 把结果给你。
+不加它就是 `202` 加一个 task id，那是正常的异步路径。这个实例的上限是 30 秒。
+
+接口文档也不用登录就能看 ——
+[`/swagger`](https://demo.douyin.wtf/swagger)、
+[`/redoc`](https://demo.douyin.wtf/redoc)、
+[`/openapi.json`](https://demo.douyin.wtf/openapi.json)，中英双语。
+
+<Aside type="caution" title="演示站是什么，不是什么">
+它只是一台小服务器，所有人共用，所以限流是**每 10 秒 30 次请求**；
+超了会进入 **10 秒冷却**，期间所有请求都被拒绝。那是演示站的限制，不是软件的。
+
+`demo` 角色只读。它不能管理身份池、改设置、建 API Key，也不能发起下载；
+调试台里的 `explain` 和 `identity` 是 operator 专属，因为这两个都会交回一份实时凭据。
+你在上面做的任何事下一个人都看得到 —— 把它当公共沙箱，**不要往里粘自己的 cookie**。
+</Aside>
 
 ## 常见问题
 
@@ -91,7 +135,32 @@ import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components'
 <LinkCard title="需要代理吗？" href="/zh/faq/#需要代理吗" description="完全取决于你的吞吐量。带数字的实话。" />
 <LinkCard title="支持 B 站、小红书、快手、微博吗？" href="/zh/faq/#支持-b-站小红书快手微博吗" description="暂时不支持，以及架构上为什么给它们留了位置。" />
 
-## 从哪开始
+## 跑一个自己的
+
+<Tabs>
+  <TabItem label="Docker" icon="seti:docker">
+    ```bash
+    git clone https://github.com/Evil0ctal/Douyin_TikTok_Download_API.git
+    cd Douyin_TikTok_Download_API
+    cp .env.example .env          # 然后设置 DTK_SECRET_KEY
+    COMPOSE_ENV_FILES=.env docker compose -p dtk -f docker/compose.yml up -d
+    ```
+
+    打开 `http://localhost:8000`，在浏览器里完成初始化。
+    完整版在[快速开始](/zh/quickstart/)。
+  </TabItem>
+  <TabItem label="一键脚本" icon="seti:powershell">
+    一个 bash 脚本，会识别你的发行版、给出对应的 Docker 安装方式、按机器大小调好
+    容器上限、生成密钥、把整套跑起来。再跑一次它就变成运维菜单：
+    状态、升级、改口令、备份、改设置、清磁盘。
+
+    ```bash
+    bash <(curl -fsSL https://raw.githubusercontent.com/Evil0ctal/Douyin_TikTok_Download_API/main/install/install.zh.sh)
+    ```
+
+    英文版是 `install/install.sh`。两份都在[安装与部署](/zh/installation/)里有说明。
+  </TabItem>
+</Tabs>
 
 <CardGrid>
   <LinkCard title="快速开始" href="/zh/quickstart/" description="在一台机器上把整套跑起来，建管理员账号，解析第一条链接 —— 大约十分钟。" />
@@ -103,4 +172,6 @@ import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components'
 ---
 
 Apache-2.0。源码、issue 和发布都在
-[GitHub](https://github.com/Evil0ctal/Douyin_TikTok_Download_API)。
+[GitHub](https://github.com/Evil0ctal/Douyin_TikTok_Download_API) ·
+在 [demo.douyin.wtf](https://demo.douyin.wtf) 上试 ·
+[English](/)。
