@@ -1,0 +1,53 @@
+# The site, on the same host as the console demo and deliberately nothing like
+# it: one container, no state, no volumes, nothing to back up. If it is lost,
+# `docker compose pull && up -d` rebuilds it exactly.
+#
+# Always with the project name, or it joins whatever stack docker guesses from
+# the directory:
+#
+#     docker compose -p douyin-wtf pull
+#     docker compose -p douyin-wtf up -d
+#
+# `./sitectl` carries that for you.
+name: douyin-wtf
+
+services:
+  site:
+    image: ${SITE_IMAGE:-ghcr.io/evil0ctal/douyin-wtf}:${SITE_IMAGE_TAG:-latest}
+    restart: unless-stopped
+
+    # Loopback only. The Cloudflare tunnel dials this; the host opens no
+    # inbound port for it, exactly as the API does not.
+    ports:
+      - "127.0.0.1:${SITE_PORT:-8080}:80"
+
+    # nginx serving 15 MB of static files needs a fraction of this. The ceiling
+    # exists so that a runaway here can never be what takes PostgreSQL down:
+    # this box has 3.8 GB and the API stack already claims most of it.
+    mem_limit: 96m
+    memswap_limit: 128m
+    cpus: 0.5
+    pids_limit: 128
+
+    # Nothing is written outside these two, both of which nginx needs.
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx:size=16m
+      - /var/run:size=1m
+    security_opt:
+      - no-new-privileges:true
+
+    # Without this the JSON driver grows until the disk is full. The site is
+    # quiet, but "quiet" is not a retention policy.
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/robots.txt"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s

@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# The only entry point for this deployment, for one reason: the project name.
+#
+# This host runs the API stack under `-p dtk`. A bare `docker compose` here
+# would invent a project name from the directory and the two would be siblings
+# that neither knows about - which is fine until someone runs `down -v` in the
+# wrong one.
+#
+# Usage: ./sitectl pull / ./sitectl up -d / ./sitectl logs -f / ./sitectl ps
+set -euo pipefail
+cd "$(dirname "$0")"
+exec docker compose -p douyin-wtf -f compose.yml "$@"

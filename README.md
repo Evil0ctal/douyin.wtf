@@ -52,16 +52,48 @@ git submodule update --init --recursive
 
 ## Deployment
 
-Cloudflare Pages.
+The site runs on the same host as the console demo, as one nginx container
+behind the existing Cloudflare tunnel.
 
-| Setting | Value |
+```
+douyin.wtf        -> tunnel -> 127.0.0.1:8080   this site
+demo.douyin.wtf   -> tunnel -> 127.0.0.1:8000   the console
+```
+
+**CI builds; the server only pulls.** Pushing to `main` builds the image and
+publishes it to `ghcr.io/evil0ctal/douyin-wtf`. The host has two cores and
+shares ~2 GB of free memory with a headless Chromium, so an `npm ci` there is a
+way to take PostgreSQL down with it.
+
+On the server:
+
+```bash
+cd /opt/douyin-wtf
+git pull
+./sitectl pull
+./sitectl up -d
+```
+
+`./sitectl` is the only entry point, and it exists for one reason: it carries
+`-p douyin-wtf`. The API stack on that host is `-p dtk`, and a bare
+`docker compose` here would invent a project name from the directory.
+
+| | |
 |---|---|
-| Build command | `npm run build` |
-| Output directory | `dist` |
-| Node version | 22 |
+| Image | `ghcr.io/evil0ctal/douyin-wtf:latest`, or a `sha-` tag to pin |
+| Port | `127.0.0.1:8080`, loopback only — the host opens nothing inbound |
+| Footprint | 32 MB image, ~17 MB resident, capped at 96 MB |
+| State | None. No volumes, nothing to back up; `pull && up -d` rebuilds it exactly |
 
-Submodules must be enabled for the build, or `vendor/upstream` arrives empty and
-the sync step fails loudly rather than publishing an empty site.
+Caching is described here and done by Cloudflare: HTML is `s-maxage=600`, hashed
+assets under `/_astro/` are immutable for a year. The edge absorbs the traffic so
+a single droplet does not have to.
+
+### Cloudflare Pages instead
+
+Nothing stops it — build command `npm run build`, output `dist`, Node 22,
+submodules enabled. It would be less to operate and faster worldwide. It is not
+what this deploys to, because the tunnel and the box were already there.
 
 ## Two build warnings that are expected
 
