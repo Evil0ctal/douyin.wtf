@@ -1,0 +1,27 @@
+/*
+ * Borrowed from the console's own token file so the two look like one project.
+ * Only the accent is overridden; everything else is Starlight's default, which
+ * is already accessible in both themes and not worth re-deriving.
+ */
+:root {
+  --sl-color-accent-low: #1c2a3a;
+  --sl-color-accent: #2f6feb;
+  --sl-color-accent-high: #b8d0ff;
+}
+
+:root[data-theme='light'] {
+  --sl-color-accent-low: #d6e3ff;
+  --sl-color-accent: #1a56d6;
+  --sl-color-accent-high: #10294f;
+}
+
+/*
+ * Documentation pages carry wide tables - the capability matrix, the settings
+ * reference - and a table that overflows the page body makes the whole document
+ * scroll sideways. Scroll the table instead.
+ */
+.sl-markdown-content table {
+  display: block;
+  overflow-x: auto;
+  max-width: 100%;
+}

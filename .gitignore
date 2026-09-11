@@ -1,0 +1,23 @@
+# Build output
+dist/
+.astro/
+
+# Dependencies
+node_modules/
+
+# Generated from vendor/upstream at build time. Never edit these by hand and
+# never commit them: the source of truth is the upstream repository's
+# documents/ directory, and a committed copy is a copy that will drift.
+src/content/docs/
+public/screenshots/
+# (llms.txt and llms-full.txt are written straight into dist/ after the build)
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
+
+# Local env
+.env
+.env.*
+!.env.example

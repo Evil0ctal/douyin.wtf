@@ -1,0 +1,9 @@
+# The whole point of this site is to be indexed. Nothing here is disallowed.
+#
+# The console demo is a different host (demo.douyin.wtf) and carries its own
+# noindex meta tag. A robots.txt cannot speak for another host, so there is
+# deliberately no rule about it here.
+User-agent: *
+Allow: /
+
+Sitemap: https://douyin.wtf/sitemap-index.xml

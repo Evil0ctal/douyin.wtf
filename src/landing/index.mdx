@@ -1,0 +1,114 @@
+---
+title: Douyin and TikTok data API, self-hosted
+description: A self-hosted data API for Douyin and TikTok. REST, MCP and a web console, with an identity pool that maintains itself. Open source, free, and it runs on your own machine.
+template: splash
+hero:
+  tagline: One <code>docker compose up</code> gives you a REST API, an MCP server and a web console for Douyin and TikTok — running on your own machine, with an identity pool that maintains itself.
+  image:
+    file: ../../assets/logo.svg
+  actions:
+    - text: Quick start
+      link: /quickstart/
+      icon: right-arrow
+    - text: GitHub
+      link: https://github.com/Evil0ctal/Douyin_TikTok_Download_API
+      icon: external
+      variant: secondary
+    - text: Try the demo
+      link: https://demo.douyin.wtf
+      icon: external
+      variant: minimal
+head:
+  - tag: script
+    attrs:
+      type: application/ld+json
+    content: |
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Douyin_TikTok_Download_API",
+        "alternateName": "DTK",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Linux, macOS, Windows (Docker)",
+        "url": "https://douyin.wtf",
+        "codeRepository": "https://github.com/Evil0ctal/Douyin_TikTok_Download_API",
+        "programmingLanguage": ["Python", "TypeScript", "Go"],
+        "license": "https://www.apache.org/licenses/LICENSE-2.0",
+        "isAccessibleForFree": true,
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "description": "A self-hosted data API for Douyin and TikTok. REST, MCP and a web console, with a self-maintaining identity pool, a PostgreSQL archive and native request signing."
+      }
+---
+
+import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components'
+
+## What it is
+
+**Douyin_TikTok_Download_API** is an open-source, self-hosted data API for
+[Douyin](https://www.douyin.com) (抖音) and [TikTok](https://www.tiktok.com). You run it
+on your own machine with one `docker compose up`. There is no hosted tier, no
+signup and no quota, and nothing is proxied through anybody else's server.
+
+It fetches posts, authors, comments, mixes and search from both platforms, and it
+downloads video and image albums **without a watermark** — it selects the clean
+stream the platform already publishes rather than stripping anything. What it
+collects is archived in your own PostgreSQL, so a post deleted upstream is still
+readable locally.
+
+<CardGrid stagger>
+  <Card title="Three entry points, one service layer" icon="puzzle">
+    A REST API with 93 operations, an MCP server for AI agents, and a `dtk` CLI.
+    MCP is not a wrapper around HTTP: all three call the same service layer.
+  </Card>
+  <Card title="Cookies stop being a chore" icon="approve-check">
+    A headless browser mints guest identities on a timer. The pool tests, cools
+    and retires them on its own. Your own logged-in cookies are an optional
+    upgrade, not a requirement.
+  </Card>
+  <Card title="Signing is native Python" icon="seti:python">
+    `a_bogus`, `X-Bogus` and the TikTok signatures run in-process in
+    microseconds. The browser is kept as a fallback and as a drift detector.
+  </Card>
+  <Card title="It tells you when it is unwell" icon="warning">
+    Every request is logged with structure. Every identity and every endpoint
+    carries a live health score. Risk-control signals trip a circuit breaker
+    before the pool burns down.
+  </Card>
+</CardGrid>
+
+## Try it without installing anything
+
+[https://demo.douyin.wtf](https://demo.douyin.wtf) is a live instance, open to everyone. The login page
+fills in the demo account for you, and from there the console and the API are
+both usable.
+
+It is one small server, so it is rate-limited: **30 requests per 10 seconds**,
+and going over puts you in a 10-second cooldown where everything is refused.
+That is the demo's limit, not the software's — your own instance has whatever
+limit you give it.
+
+## Common questions
+
+<LinkCard title="Is this legal?" href="/faq/#is-this-legal" description="What the licence says, what it does not cover, and whose responsibility the answer is." />
+<LinkCard title="Can it download without a watermark?" href="/faq/#can-it-download-without-a-watermark" description="Yes, when the platform serves one — and an exact account of what that means." />
+<LinkCard title="Do I need cookies from my own account?" href="/faq/#do-i-need-cookies-from-my-own-account" description="No. Guest identities are minted for you; your own cookies widen what you can see." />
+<LinkCard title="Do I need proxies?" href="/faq/#do-i-need-proxies" description="Depends entirely on your throughput. The honest version, with numbers." />
+<LinkCard title="Does it support Bilibili, Xiaohongshu, Kuaishou or Weibo?" href="/faq/#does-it-support-bilibili-xiaohongshu-kuaishou-or-weibo" description="Not yet, and why the architecture leaves room for them." />
+
+## Where to start
+
+<CardGrid>
+  <LinkCard title="Quick start" href="/quickstart/" description="The stack running on one host, an administrator account, and one link parsed — about ten minutes." />
+  <LinkCard title="Installation and deployment" href="/installation/" description="The compose file service by service, every variable, reverse proxies, and running without Docker." />
+  <LinkCard title="REST API guide" href="/api/" description="Authentication, the response envelope, the asynchronous task model, paging and errors." />
+  <LinkCard title="MCP and AI agents" href="/mcp/" description="Point Claude Code, Claude Desktop or any MCP client at your own instance." />
+</CardGrid>
+
+---
+
+Apache-2.0. The source, the issue tracker and the releases are on
+[GitHub](https://github.com/Evil0ctal/Douyin_TikTok_Download_API).
