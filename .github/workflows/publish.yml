@@ -82,7 +82,10 @@ jobs:
 
       - name: Check the built image serves what it should
         run: |
-          docker run -d --name probe -p 8099:80 "${IMAGE}@${{ steps.meta.outputs.digest }}"
+          # The sha tag, not a digest: `digest` is an output of
+          # build-push-action, and asking the metadata step for one yields an
+          # empty string and a reference ending in a bare `@`.
+          docker run -d --name probe -p 8099:80 "${IMAGE}:sha-${{ github.sha }}"
           for _ in $(seq 30); do
             curl -fsS -o /dev/null http://127.0.0.1:8099/robots.txt && break
             sleep 1
