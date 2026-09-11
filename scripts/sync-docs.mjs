@@ -35,6 +35,8 @@ const REPO_BLOB =
 /** Upstream directory -> the path segment Starlight serves it under. */
 const LOCALES = { en: '', zh: 'zh' }
 
+const SITE = 'https://douyin.wtf'
+
 /** `01-quickstart.md` -> { order: 1, slug: 'quickstart' } */
 function parseName(filename) {
   const match = /^(\d+)-(.+)\.md$/.exec(filename)
@@ -115,6 +117,57 @@ function frontmatter(fields) {
   return `---\n${yaml}\n---\n\n`
 }
 
+/**
+ * FAQ questions, as `FAQPage` structured data.
+ *
+ * The upstream FAQ is already written as questions - "Is this legal?", "Can it
+ * download without a watermark?" - which is the shape both a rich result and a
+ * generative answer want, and it would be a waste to publish it as prose and
+ * leave that on the floor. Generated from the H3s rather than maintained by
+ * hand, so the two cannot say different things.
+ *
+ * Answers are trimmed to the first paragraph and capped: the schema wants an
+ * answer, not the page.
+ */
+function faqStructuredData(body, url) {
+  const questions = []
+  const sections = body.split(/^### /m).slice(1)
+
+  for (const section of sections) {
+    const [heading, ...rest] = section.split('\n')
+    const answer = rest
+      .join('\n')
+      .split(/\n\s*\n/)
+      .map((block) => block.trim())
+      .find((block) => block && !block.startsWith('|') && !block.startsWith('```'))
+    if (!heading.trim() || !answer) continue
+    questions.push({
+      '@type': 'Question',
+      name: heading.trim(),
+      acceptedAnswer: {
+        '@type': 'Answer',
+        // `[text](url)` collapses to `text`. Stripping only the brackets left
+        // "Apache License 2.0(https://www.apache.org/...)" in the answer, which
+        // is the kind of thing a rich result renders verbatim.
+        text: answer
+          .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+          .replace(/\s+/g, ' ')
+          .replace(/[*`]/g, '')
+          .trim()
+          .slice(0, 600),
+      },
+    })
+  }
+
+  if (questions.length === 0) return null
+  return JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    url,
+    mainEntity: questions,
+  })
+}
+
 async function syncLocale(locale) {
   const files = (await readdir(join(SOURCE, locale)))
     .filter((name) => name.endsWith('.md'))
@@ -128,18 +181,27 @@ async function syncLocale(locale) {
     const raw = await readFile(join(SOURCE, locale, filename), 'utf8')
     const { title, body } = takeTitle(rewriteLinks(stripCrumb(raw), locale))
 
-    await writeFile(
-      join(target, `${slug}.md`),
-      frontmatter({
-        title,
-        // `description` is what a search result and an AI summary quote. The
-        // upstream lead paragraph is written to be exactly that, so the first
-        // sentence of the body is the honest source for it.
-        description: firstSentence(body, title),
-        sidebar: { order },
-      }) + body,
-      'utf8',
-    )
+    const fields = {
+      title,
+      // `description` is what a search result and an AI summary quote. The
+      // upstream lead paragraph is written to be exactly that, so the first
+      // sentence of the body is the honest source for it.
+      description: firstSentence(body, title),
+      sidebar: { order },
+    }
+
+    const faq = slug === 'faq' ? faqStructuredData(body, `${SITE}${urlFor(locale, slug)}`) : null
+    const head = faq
+      ? `head:\n  - tag: script\n    attrs:\n      type: application/ld+json\n    content: ${JSON.stringify(faq)}\n`
+      : ''
+
+    // `frontmatter()` closes with `---\n\n`; the head block goes in before
+    // that fence, not after it.
+    const matter = head
+      ? frontmatter(fields).replace(/---\n\n$/, `${head}---\n\n`)
+      : frontmatter(fields)
+
+    await writeFile(join(target, `${slug}.md`), matter + body, 'utf8')
   }
 
   return files.length
@@ -174,11 +236,20 @@ async function main() {
   // The two landing pages are this site's own content - the only prose here
   // that is not upstream's. They live outside src/content/docs because that
   // directory is wholly generated and therefore git-ignored.
+  //
+  // Relative paths inside them are written for where they LAND, not for where
+  // they are stored: `src/landing/index.mdx` becomes `src/content/docs/
+  // index.mdx`, so its imports climb from there. The Chinese page lands one
+  // level deeper and climbs one more. Getting this wrong is a build error
+  // rather than a silent miss, which is the one mercy in it.
   await cp(LANDING, OUT, { recursive: true })
 
   await cp(join(UPSTREAM, 'screenshots'), join(ROOT, 'public', 'screenshots'), {
     recursive: true,
   })
+  // The project's own marks, from the same place the README takes them, so the
+  // site cannot end up showing a logo the project has stopped using.
+  await cp(join(UPSTREAM, 'logo'), join(ROOT, 'public', 'logo'), { recursive: true })
 
   const upstream = await readFile(join(UPSTREAM, '.git'), 'utf8').catch(() => '')
   console.log(

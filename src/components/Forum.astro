@@ -1,0 +1,62 @@
+---
+/**
+ * The reverse-engineering forum.
+ *
+ * Kept separate from the sponsor block and deliberately below it: this one is
+ * not paid for, so it does not carry `rel="sponsored"`, and saying so by
+ * structure is more honest than saying so in a sentence nobody reads.
+ */
+interface Props {
+  heading: string
+  lead: string
+  blurb: string
+  cta: string
+}
+const { heading, lead, blurb, cta } = Astro.props
+---
+
+<aside class="forum">
+  <p class="tag">{heading}</p>
+  <a class="logo" href="https://reer.dev" target="_blank" rel="noopener">
+    <img src="/logo/reer.png" width="64" height="64" alt="REER" loading="lazy" />
+  </a>
+  <div class="body">
+    <h3><a href="https://reer.dev" target="_blank" rel="noopener">reer.dev</a></h3>
+    <p class="lead">{lead}</p>
+    <p class="blurb">{blurb}</p>
+    <p class="links"><a href="https://reer.dev" target="_blank" rel="noopener">{cta}</a></p>
+  </div>
+</aside>
+
+<style>
+  .forum {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-areas: 'tag tag' 'logo body';
+    gap: 0.5rem 1.1rem;
+    align-items: start;
+    margin: 2rem 0;
+    padding: 1.3rem;
+    border: 1px dashed var(--sl-color-gray-5);
+    border-radius: 0.6rem;
+  }
+  .tag {
+    grid-area: tag;
+    margin: 0;
+    font-size: 0.7rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--sl-color-gray-3);
+  }
+  .logo { grid-area: logo; line-height: 0; }
+  .logo img { border-radius: 0.5rem; }
+  .body { grid-area: body; }
+  .body h3 { margin: 0 0 0.3rem; font-size: 1.1rem; }
+  .body p { margin: 0 0 0.4rem; }
+  .lead { font-weight: 600; }
+  .blurb { color: var(--sl-color-gray-2); font-size: 0.92rem; }
+  .links { font-size: 0.88rem; }
+  @media (max-width: 30rem) {
+    .forum { grid-template-columns: 1fr; grid-template-areas: 'tag' 'logo' 'body'; }
+  }
+</style>

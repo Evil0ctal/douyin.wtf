@@ -10,6 +10,8 @@ node_modules/
 # documents/ directory, and a committed copy is a copy that will drift.
 src/content/docs/
 public/screenshots/
+public/logo/logo*
+public/logo/reer.png
 # (llms.txt and llms-full.txt are written straight into dist/ after the build)
 
 # Editors / OS

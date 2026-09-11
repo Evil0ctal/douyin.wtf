@@ -19,6 +19,14 @@ hero:
       icon: external
       variant: minimal
 head:
+  - tag: meta
+    attrs:
+      property: og:type
+      content: website
+  - tag: meta
+    attrs:
+      property: og:locale:alternate
+      content: en
   - tag: script
     attrs:
       type: application/ld+json
@@ -36,11 +44,30 @@ head:
         "license": "https://www.apache.org/licenses/LICENSE-2.0",
         "isAccessibleForFree": true,
         "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "softwareVersion": "5.0.3",
+        "datePublished": "2021-11-07",
+        "downloadUrl": "https://hub.docker.com/r/evil0ctal/douyin_tiktok_download_api",
+        "installUrl": "https://douyin.wtf/zh//quickstart/",
+        "keywords": "Douyin API, TikTok API, 抖音API, no watermark video download, 无水印下载, self-hosted scraper, TikTok scraper, 抖音爬虫, a_bogus, X-Bogus, request signing, MCP server, REST API, Docker, open source, 视频解析, 评论采集, 作者主页, 批量下载",
+        "author": { "@type": "Person", "name": "Evil0ctal", "url": "https://github.com/Evil0ctal" },
+        "maintainer": { "@type": "Person", "name": "Evil0ctal", "url": "https://github.com/Evil0ctal" },
         "description": "自部署的抖音 / TikTok 数据接口服务。REST、MCP 和 Web 控制台，身份池自维护，内容归档在自己的 PostgreSQL 里，签名为纯 Python 实现。"
       }
 ---
 
 import { Aside, Card, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/starlight/components'
+import Stats from '../../../components/Stats.astro'
+import Sponsor from '../../../components/Sponsor.astro'
+import Forum from '../../../components/Forum.astro'
+
+<Stats labels={{
+  stars: 'GitHub 星标',
+  forks: 'Fork',
+  pulls: 'Docker 拉取',
+  release: '最新版本',
+  since: '持续维护（年）',
+  asOf: '数据读取于 {date}，构建时写进页面，不是页面去请求的。',
+}} />
 
 <Aside type="tip" title="有一个可以直接登录的在线实例">
 [**demo.douyin.wtf**](https://demo.douyin.wtf) 跑的就是这套软件，对所有人开放。
@@ -57,6 +84,12 @@ import { Aside, Card, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/
 它能取两个平台的作品、作者、评论、合集和搜索，下载视频和图集时拿到的是**无水印**的流
 —— 它挑的是平台本来就提供的那条干净流，而不是「去掉」了什么。采集到的内容归档在
 你自己的 PostgreSQL 里，所以上游删掉的作品，本地还读得到。
+
+麻烦的部分它替你处理了，而不是丢给你：抖音的 `a_bogus`、`X-Bogus` 请求签名和 TikTok 的
+签名都是纯 Python 实现；短链会先展开再对照白名单校验，然后才发出任何请求；作品 ID 会先按
+平台自己的编码规则验一遍，所以一个不可能存在的 ID 不会浪费一次上游请求。
+
+![控制台：总览、身份池、调度器、调试台、资料库、下载与日志](/screenshots/console-zh.gif)
 
 <CardGrid stagger>
   <Card title="三个入口，一套逻辑" icon="puzzle">
@@ -134,6 +167,27 @@ import { Aside, Card, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/
 <LinkCard title="需要我自己账号的 cookie 吗？" href="/zh/faq/#需要我自己账号的-cookie-吗" description="不需要。游客身份是自动铸造的；你自己的 cookie 能让它看到更多。" />
 <LinkCard title="需要代理吗？" href="/zh/faq/#需要代理吗" description="完全取决于你的吞吐量。带数字的实话。" />
 <LinkCard title="支持 B 站、小红书、快手、微博吗？" href="/zh/faq/#支持-b-站小红书快手微博吗" description="暂时不支持，以及架构上为什么给它们留了位置。" />
+
+## 谁在为它买单
+
+<Sponsor
+  heading="赞助商"
+  lead="社交媒体数据与 API 市场"
+  blurb="覆盖抖音、TikTok、小红书、Instagram、YouTube、Twitter 的专业数据服务：实时接口、灵活的 API、有竞争力的价格。如果你更想直接买数据、而不是自己运维一个身份池，从这里开始。"
+  cta="访问 TikHub.io"
+  docs="接口文档"
+  become="赞助这个项目"
+/>
+
+TikHub 付费出现在这一页上，这个项目才得以保持免费和 Apache-2.0。整个安排就这么简单：
+这里没有付费档、没有被留一手的功能，也没有任何东西会因为你从不点它而停止工作。
+
+<Forum
+  heading="社区"
+  lead="逆向工程交流论坛"
+  blurb="一个可以把你琢磨出来的东西放上去的地方。这个项目之所以存在，是因为有人把签名是怎么构造的写了下来；论坛就是为了下一轮那样的事 —— 签名、协议、加壳，任何被拆开的东西。免费、无广告、中英双语，不设门槛。"
+  cta="打开 reer.dev"
+/>
 
 ## 跑一个自己的
 

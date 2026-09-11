@@ -135,6 +135,35 @@ export default defineConfig({
           tag: 'link',
           attrs: { rel: 'alternate', type: 'text/plain', href: '/llms.txt' },
         },
+        // Starlight declares `twitter:card: summary_large_image` and then had
+        // no image to put in it, so every share of this site rendered as a
+        // blank rectangle. The card is a real screenshot of the console rather
+        // than a logo: what the reader is deciding is whether to run this, and
+        // the answer is easier to give with the thing on screen.
+        {
+          tag: 'meta',
+          attrs: { property: 'og:image', content: 'https://douyin.wtf/og.png' },
+        },
+        {
+          tag: 'meta',
+          attrs: { property: 'og:image:width', content: '1200' },
+        },
+        {
+          tag: 'meta',
+          attrs: { property: 'og:image:height', content: '630' },
+        },
+        {
+          tag: 'meta',
+          attrs: {
+            property: 'og:image:alt',
+            content:
+              'The Douyin_TikTok_Download_API console, showing the identity pool with live health and cooldown state',
+          },
+        },
+        {
+          tag: 'meta',
+          attrs: { name: 'twitter:image', content: 'https://douyin.wtf/og.png' },
+        },
       ],
     }),
 

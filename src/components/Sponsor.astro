@@ -1,0 +1,81 @@
+---
+/**
+ * The sponsor block.
+ *
+ * `rel="sponsored noopener"` is not decoration: Google asks that a paid link
+ * be declared, and an undeclared one is the kind of thing that costs a domain
+ * its standing rather than gaining the sponsor anything. The UTM parameters
+ * match the ones the README uses so both sides land in the same report.
+ *
+ * The logo is served from this origin rather than hotlinked. A sponsor whose
+ * image is fetched from their own domain gets the IP of every visitor to this
+ * page, which is not what either of us agreed to, and it is a third-party
+ * request on a page whose whole selling point is that it makes none.
+ */
+interface Props {
+  heading: string
+  lead: string
+  blurb: string
+  cta: string
+  docs: string
+  become: string
+}
+const { heading, lead, blurb, cta, docs, become } = Astro.props
+
+const UTM = 'utm_source=douyin.wtf&utm_medium=referral&utm_campaign=sponsor'
+const site = `https://www.tikhub.io/?${UTM}&utm_content=site_cta`
+const api = `https://api.tikhub.io/?${UTM}&utm_content=site_docs`
+---
+
+<aside class="sponsor">
+  <p class="tag">{heading}</p>
+  <a class="logo" href={site} target="_blank" rel="sponsored noopener">
+    <img src="/logo/tikhub.jpeg" width="72" height="72" alt="TikHub.io" loading="lazy" />
+  </a>
+  <div class="body">
+    <h3><a href={site} target="_blank" rel="sponsored noopener">TikHub.io</a></h3>
+    <p class="lead">{lead}</p>
+    <p class="blurb">{blurb}</p>
+    <p class="links">
+      <a href={site} target="_blank" rel="sponsored noopener">{cta}</a>
+      <span aria-hidden="true"> · </span>
+      <a href={api} target="_blank" rel="sponsored noopener">{docs}</a>
+      <span aria-hidden="true"> · </span>
+      <a href="https://github.com/sponsors/evil0ctal" target="_blank" rel="noopener">{become}</a>
+    </p>
+  </div>
+</aside>
+
+<style>
+  .sponsor {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-areas: 'tag tag' 'logo body';
+    gap: 0.5rem 1.1rem;
+    align-items: start;
+    margin: 2rem 0;
+    padding: 1.3rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.6rem;
+    background: var(--sl-color-gray-7, transparent);
+  }
+  .tag {
+    grid-area: tag;
+    margin: 0;
+    font-size: 0.7rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--sl-color-gray-3);
+  }
+  .logo { grid-area: logo; line-height: 0; }
+  .logo img { border-radius: 0.5rem; }
+  .body { grid-area: body; }
+  .body h3 { margin: 0 0 0.3rem; font-size: 1.1rem; }
+  .body p { margin: 0 0 0.4rem; }
+  .lead { font-weight: 600; }
+  .blurb { color: var(--sl-color-gray-2); font-size: 0.92rem; }
+  .links { font-size: 0.88rem; }
+  @media (max-width: 30rem) {
+    .sponsor { grid-template-columns: 1fr; grid-template-areas: 'tag' 'logo' 'body'; }
+  }
+</style>

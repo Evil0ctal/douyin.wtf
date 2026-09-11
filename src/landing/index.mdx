@@ -19,6 +19,14 @@ hero:
       icon: external
       variant: minimal
 head:
+  - tag: meta
+    attrs:
+      property: og:type
+      content: website
+  - tag: meta
+    attrs:
+      property: og:locale:alternate
+      content: zh_CN
   - tag: script
     attrs:
       type: application/ld+json
@@ -36,11 +44,30 @@ head:
         "license": "https://www.apache.org/licenses/LICENSE-2.0",
         "isAccessibleForFree": true,
         "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "softwareVersion": "5.0.3",
+        "datePublished": "2021-11-07",
+        "downloadUrl": "https://hub.docker.com/r/evil0ctal/douyin_tiktok_download_api",
+        "installUrl": "https://douyin.wtf/quickstart/",
+        "keywords": "Douyin API, TikTok API, 抖音API, no watermark video download, 无水印下载, self-hosted scraper, TikTok scraper, 抖音爬虫, a_bogus, X-Bogus, request signing, MCP server, REST API, Docker, open source, 视频解析, 评论采集, 作者主页, 批量下载",
+        "author": { "@type": "Person", "name": "Evil0ctal", "url": "https://github.com/Evil0ctal" },
+        "maintainer": { "@type": "Person", "name": "Evil0ctal", "url": "https://github.com/Evil0ctal" },
         "description": "A self-hosted data API for Douyin and TikTok. REST, MCP and a web console, with a self-maintaining identity pool, a PostgreSQL archive and native request signing."
       }
 ---
 
 import { Aside, Card, CardGrid, LinkCard, Steps, Tabs, TabItem } from '@astrojs/starlight/components'
+import Stats from '../../components/Stats.astro'
+import Sponsor from '../../components/Sponsor.astro'
+import Forum from '../../components/Forum.astro'
+
+<Stats labels={{
+  stars: 'GitHub stars',
+  forks: 'forks',
+  pulls: 'Docker pulls',
+  release: 'latest release',
+  since: 'years maintained',
+  asOf: 'Figures read {date}. Built into the page, not fetched from it.',
+}} />
 
 <Aside type="tip" title="There is a live instance you can sign in to">
 [**demo.douyin.wtf**](https://demo.douyin.wtf) runs this software and is open to
@@ -60,6 +87,14 @@ downloads video and image albums **without a watermark** — it selects the clea
 stream the platform already publishes rather than stripping anything. What it
 collects is archived in your own PostgreSQL, so a post deleted upstream is still
 readable locally.
+
+It handles the awkward parts rather than leaving them to you: Douyin's
+`a_bogus` and `X-Bogus` request signatures and TikTok's are implemented natively
+in Python, short links are expanded and checked against an allowlist before
+anything is fetched, and a post id is validated against the platform's own
+encoding so an id that cannot exist never costs an upstream request.
+
+![The console: overview, identity pool, scheduler, playground, library, downloads and logs](/screenshots/console-en.gif)
 
 <CardGrid stagger>
   <Card title="Three entry points, one service layer" icon="puzzle">
@@ -146,6 +181,28 @@ cookie into it.
 <LinkCard title="Do I need cookies from my own account?" href="/faq/#do-i-need-cookies-from-my-own-account" description="No. Guest identities are minted for you; your own cookies widen what you can see." />
 <LinkCard title="Do I need proxies?" href="/faq/#do-i-need-proxies" description="It depends entirely on your throughput. The honest version, with numbers." />
 <LinkCard title="Does it support Bilibili, Xiaohongshu, Kuaishou or Weibo?" href="/faq/#does-it-support-bilibili-xiaohongshu-kuaishou-or-weibo" description="Not yet, and why the architecture leaves room for them." />
+
+## Who pays for this
+
+<Sponsor
+  heading="Sponsor"
+  lead="Your ultimate social media data & API marketplace"
+  blurb="Professional data for Douyin, TikTok, Xiaohongshu, Instagram, YouTube and Twitter. Real-time endpoints, flexible APIs, competitive pricing. If you would rather buy the data than operate a pool, start here."
+  cta="Visit TikHub.io"
+  docs="API docs"
+  become="Sponsor this project"
+/>
+
+TikHub pays to be on this page, and this project stays free and Apache-2.0
+because of it. That is the whole arrangement: no paid tier here, no feature held
+back, nothing that stops working if you never click it.
+
+<Forum
+  heading="Community"
+  lead="A forum for reverse engineering"
+  blurb="Somewhere to put what you work out. This project exists because people wrote down how a signature was built; the forum is for the next round of that — signatures, protocols, packers, anything taken apart. Free, no advertising, English and Chinese, nothing gated."
+  cta="Open reer.dev"
+/>
 
 ## Run your own
 

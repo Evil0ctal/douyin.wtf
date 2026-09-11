@@ -1,0 +1,99 @@
+---
+/**
+ * The project's public numbers, baked in at build time.
+ *
+ * Not fetched by the page. A number that arrives after paint is a number a
+ * crawler never sees and a reader watches spin, and three API calls on every
+ * visit to decorate a heading is a poor trade. `scripts/fetch-stats.mjs` reads
+ * them during the build and commits the answer as a fallback, so the site
+ * still builds when GitHub is having an afternoon.
+ *
+ * `measured` is rendered on purpose: a figure with a date on it is honest
+ * about being a snapshot, and "20,067 stars" with no date invites the reader
+ * to believe it is live.
+ */
+import stats from '../data/stats.json'
+
+interface Props {
+  labels: { stars: string; forks: string; pulls: string; release: string; since: string; asOf: string }
+}
+
+const { labels } = Astro.props
+
+/** Thousands separators, and `k` past ten thousand - a card is not a report. */
+function compact(value: number): string {
+  if (value >= 10_000) return `${(value / 1000).toFixed(value >= 100_000 ? 0 : 1)}k`
+  return value.toLocaleString('en-US')
+}
+
+// Whole years elapsed, not a subtraction of year numbers: the repository was
+// created in November and this is read in September, so the naive version
+// rounds four years and ten months up to five. A stat that flatters itself is
+// the one a reader checks.
+const start = new Date(stats.since)
+const now = new Date(stats.measured)
+let years = now.getFullYear() - start.getFullYear()
+const beforeAnniversary =
+  now.getMonth() < start.getMonth() ||
+  (now.getMonth() === start.getMonth() && now.getDate() < start.getDate())
+if (beforeAnniversary) years -= 1
+
+const cells = [
+  { value: compact(stats.stars), label: labels.stars, href: 'https://github.com/Evil0ctal/Douyin_TikTok_Download_API/stargazers' },
+  { value: compact(stats.forks), label: labels.forks, href: 'https://github.com/Evil0ctal/Douyin_TikTok_Download_API/forks' },
+  { value: compact(stats.pulls), label: labels.pulls, href: 'https://hub.docker.com/r/evil0ctal/douyin_tiktok_download_api' },
+  { value: stats.version, label: labels.release, href: 'https://github.com/Evil0ctal/Douyin_TikTok_Download_API/releases/latest' },
+  { value: `${years}`, label: labels.since, href: 'https://github.com/Evil0ctal/Douyin_TikTok_Download_API/commits/main' },
+]
+---
+
+<div class="stats" role="list">
+  {cells.map((cell) => (
+    <a class="cell" role="listitem" href={cell.href} target="_blank" rel="noopener">
+      <span class="value">{cell.value}</span>
+      <span class="label">{cell.label}</span>
+    </a>
+  ))}
+</div>
+<p class="asof">{labels.asOf.replace('{date}', stats.measured)}</p>
+
+<style>
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+    gap: 0.75rem;
+    margin-top: 2rem;
+  }
+  .cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.9rem 0.5rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.5rem;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s ease;
+  }
+  .cell:hover {
+    border-color: var(--sl-color-accent);
+  }
+  .value {
+    font-size: 1.45rem;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--sl-color-white);
+  }
+  .label {
+    font-size: 0.8rem;
+    color: var(--sl-color-gray-3);
+    text-align: center;
+  }
+  .asof {
+    margin-top: 0.6rem;
+    font-size: 0.75rem;
+    color: var(--sl-color-gray-4);
+    text-align: center;
+  }
+</style>

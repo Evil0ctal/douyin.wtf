@@ -7,9 +7,9 @@
   "scripts": {
     "sync": "node scripts/sync-docs.mjs",
     "dev": "npm run sync && astro dev",
-    "build": "npm run sync && astro build && node scripts/build-llms.mjs",
+    "build": "npm run stats && npm run sync && astro build && node scripts/build-llms.mjs",
     "preview": "astro preview",
-    "check": "astro check"
+    "stats": "node scripts/fetch-stats.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
