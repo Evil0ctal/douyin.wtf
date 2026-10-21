@@ -9,7 +9,8 @@
     "dev": "npm run sync && astro dev",
     "build": "npm run stats && npm run sync && astro build && node scripts/build-llms.mjs",
     "preview": "astro preview",
-    "stats": "node scripts/fetch-stats.mjs"
+    "stats": "node scripts/fetch-stats.mjs",
+    "icons": "node scripts/build-icons.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",

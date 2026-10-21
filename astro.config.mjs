@@ -24,8 +24,14 @@ export default defineConfig({
         'zh-CN': 'Douyin_TikTok_Download_API',
       },
       description:
-        'A self-hosted data API for Douyin and TikTok. REST, MCP and a web console, ' +
-        'with an identity pool that maintains itself. Open source and free to run.',
+        'A self-hosted data API for Douyin, TikTok and Bilibili. REST, MCP and a web ' +
+        'console, with an identity pool that maintains itself. Open source and free to run.',
+
+      // Starlight links /favicon.svg whether or not the file exists, and for a
+      // long time it did not: every page asked for a 404 and every tab showed a
+      // blank icon. The three files are rendered from the project mark by
+      // scripts/build-icons.mjs; the .ico and the touch icon are linked below.
+      favicon: '/favicon.svg',
 
       // `zh-CN` rather than the more precise `zh-Hans`, and it was measured
       // rather than assumed: Starlight ships interface translations keyed by
@@ -86,7 +92,14 @@ export default defineConfig({
         {
           label: 'Deploy it',
           translations: { 'zh-CN': '部署' },
-          items: [{ slug: 'installation' }, { slug: 'configuration' }, { slug: 'security' }],
+          // funasr-models is the offline transcriber's models, which are
+          // fetched once at install time - deployment, not day-to-day use.
+          items: [
+            { slug: 'installation' },
+            { slug: 'configuration' },
+            { slug: 'funasr-models' },
+            { slug: 'security' },
+          ],
         },
         {
           label: 'Run it',
@@ -134,6 +147,15 @@ export default defineConfig({
         {
           tag: 'link',
           attrs: { rel: 'alternate', type: 'text/plain', href: '/llms.txt' },
+        },
+        // For what does not take an SVG icon, and for iOS home screens.
+        {
+          tag: 'link',
+          attrs: { rel: 'icon', href: '/favicon.ico', sizes: '16x16 32x32 48x48' },
+        },
+        {
+          tag: 'link',
+          attrs: { rel: 'apple-touch-icon', href: '/apple-touch-icon.png', sizes: '180x180' },
         },
         // Starlight declares `twitter:card: summary_large_image` and then had
         // no image to put in it, so every share of this site rendered as a

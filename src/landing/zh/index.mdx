@@ -1,9 +1,9 @@
 ---
-title: 自部署的抖音 / TikTok 数据接口
-description: 自部署的抖音、TikTok 数据接口服务。REST、MCP 和 Web 控制台，身份池自维护。开源、免费，跑在你自己的机器上。
+title: 自部署的抖音 / TikTok / B 站数据接口
+description: 自部署的抖音、TikTok、B 站数据接口服务。REST、MCP 和 Web 控制台，身份池自维护，无水印下载，离线语音转文字。开源、免费，跑在你自己的机器上。
 template: splash
 hero:
-  tagline: 一条 <code>docker compose up</code>，你就有了抖音和 TikTok 的 REST 接口、MCP 服务端和 Web 控制台 —— 跑在你自己的机器上，身份池自己维护自己。
+  tagline: 一条 <code>docker compose up</code>，你就有了抖音、TikTok 和 B 站的 REST 接口、MCP 服务端和 Web 控制台 —— 跑在你自己的机器上，身份池自己维护自己。
   image:
     file: ../../../assets/logo.svg
   actions:
@@ -44,14 +44,14 @@ head:
         "license": "https://www.apache.org/licenses/LICENSE-2.0",
         "isAccessibleForFree": true,
         "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-        "softwareVersion": "5.0.3",
+        "softwareVersion": "5.1.7",
         "datePublished": "2021-11-07",
         "downloadUrl": "https://hub.docker.com/r/evil0ctal/douyin_tiktok_download_api",
-        "installUrl": "https://douyin.wtf/zh//quickstart/",
-        "keywords": "Douyin API, TikTok API, 抖音API, no watermark video download, 无水印下载, self-hosted scraper, TikTok scraper, 抖音爬虫, a_bogus, X-Bogus, request signing, MCP server, REST API, Docker, open source, 视频解析, 评论采集, 作者主页, 批量下载",
+        "installUrl": "https://douyin.wtf/zh/quickstart/",
+        "keywords": "Douyin API, TikTok API, Bilibili API, 抖音API, B站API, no watermark video download, 无水印下载, self-hosted scraper, TikTok scraper, 抖音爬虫, a_bogus, X-Bogus, WBI, request signing, speech to text, offline transcription, 语音转文字, live room, trending, MCP server, REST API, Docker, open source, 视频解析, 评论采集, 作者主页, 直播间, 热榜, 批量下载",
         "author": { "@type": "Person", "name": "Evil0ctal", "url": "https://github.com/Evil0ctal" },
         "maintainer": { "@type": "Person", "name": "Evil0ctal", "url": "https://github.com/Evil0ctal" },
-        "description": "自部署的抖音 / TikTok 数据接口服务。REST、MCP 和 Web 控制台，身份池自维护，内容归档在自己的 PostgreSQL 里，签名为纯 Python 实现。"
+        "description": "自部署的抖音 / TikTok / B 站数据接口服务。REST、MCP 和 Web 控制台，身份池自维护，内容归档在自己的 PostgreSQL 里，签名为纯 Python 实现，支持无水印下载和离线语音转文字。"
       }
 ---
 
@@ -78,36 +78,49 @@ import Forum from '../../../components/Forum.astro'
 ## 这是什么
 
 **Douyin_TikTok_Download_API** 是一个开源、自部署的[抖音](https://www.douyin.com)、
-[TikTok](https://www.tiktok.com) 数据接口服务。你用一条 `docker compose up`
-把它跑在自己的机器上。没有托管版、不用注册、没有配额，链路上也没有第三方。
+[TikTok](https://www.tiktok.com) 和 [B 站](https://www.bilibili.com)数据接口服务。
+你用一条 `docker compose up` 把它跑在自己的机器上。没有托管版、不用注册、没有配额，
+链路上也没有第三方。
 
-它能取两个平台的作品、作者、评论、合集和搜索，下载视频和图集时拿到的是**无水印**的流
-—— 它挑的是平台本来就提供的那条干净流，而不是「去掉」了什么。采集到的内容归档在
-你自己的 PostgreSQL 里，所以上游删掉的作品，本地还读得到。
+它能取作品、作者和评论，还有声音、话题、直播间、热榜和搜索结果；下载视频和图集时拿到的是
+**无水印**的流 —— 它挑的是平台本来就提供的那条干净流，而不是「去掉」了什么，抖音实况图背后的
+那段视频也一并拿到。采集到的内容归档在你自己的 PostgreSQL 里，所以上游删掉的作品，本地还读得到。
 
-麻烦的部分它替你处理了，而不是丢给你：抖音的 `a_bogus`、`X-Bogus` 请求签名和 TikTok 的
-签名都是纯 Python 实现；短链会先展开再对照白名单校验，然后才发出任何请求；作品 ID 会先按
+下载下来的视频可以在同一台机器上转成文字。可选的转写服务在一个没有出网路由的容器里跑 FunASR 模型，
+音频不会离开这台机器，也不调用任何语音接口。
+
+麻烦的部分它替你处理了，而不是丢给你：抖音的 `a_bogus`、`X-Bogus` 请求签名、TikTok 的签名
+和 B 站的 WBI 都是纯 Python 实现；短链会先展开再对照白名单校验，然后才发出任何请求；作品 ID 会先按
 平台自己的编码规则验一遍，所以一个不可能存在的 ID 不会浪费一次上游请求。
 
 ![控制台：总览、身份池、调度器、调试台、资料库、下载与日志](/screenshots/console-zh.gif)
 
 <CardGrid stagger>
   <Card title="三个入口，一套逻辑" icon="puzzle">
-    93 个操作的 REST 接口、给 AI agent 用的 MCP 服务端、以及 `dtk` 命令行。
+    126 个操作的 REST 接口、给 AI agent 用的 MCP 服务端、以及 `dtk` 命令行。
     MCP 不是在 HTTP 上再包一层：三者调的是同一个 service 层，
     所以一次工具调用省掉了第二跳和第二次认证。
   </Card>
   <Card title="cookie 不再是负担" icon="approve-check">
-    无头浏览器按时铸造游客身份，池子自己测试、冷却和退休它们。
+    游客身份按时自动铸造 —— 抖音和 TikTok 用无头浏览器，B 站直接走 HTTP。
+    池子自己测试、冷却和退休它们。
     你自己的登录态 cookie 是可选增强，不是前提。
   </Card>
   <Card title="签名是纯 Python" icon="seti:python">
-    `a_bogus`、`X-Bogus` 和 TikTok 的签名都在进程内算，微秒级。
+    `a_bogus`、`X-Bogus`、TikTok 的签名和 B 站的 WBI 都在进程内算，微秒级。
     浏览器留作兜底，同时也是漂移探测器 —— 平台换了算法，是它先发现的。
   </Card>
   <Card title="它会告诉你自己不舒服" icon="warning">
     每次请求都有结构化记录，每个身份和每个端点都有实时健康度。
     风控信号会在池子烧穿之前触发熔断。
+  </Card>
+  <Card title="不只是作品" icon="magnifier">
+    除了作品和作者，还有作品旁边的推荐、一段声音和用它的作品、话题、关键词搜索、
+    作者自己的合集、直播间和热榜 —— 每个平台只开放游客能拿到的那部分。
+  </Card>
+  <Card title="下载、留存、转写" icon="download">
+    下载由一个小小的 Go 边车完成，进度实时可见，B 站的多 P 视频可以按 P 下载。
+    下载完的视频可以离线转写 —— 普通话，带标点，两核 CPU 上每分钟音频约一秒。
   </Card>
 </CardGrid>
 
@@ -119,7 +132,7 @@ import Forum from '../../../components/Forum.astro'
 
     1. 打开 [demo.douyin.wtf](https://demo.douyin.wtf)，登录页已经替你填好演示账号。
     2. 登录进去，你的角色是 `demo`。
-    3. 进 **调试台**，粘贴任意抖音或 TikTok 链接，点解析。
+    3. 进 **调试台**，粘贴任意抖音、TikTok 或 B 站链接，点解析。
 
     </Steps>
   </Card>
@@ -162,11 +175,13 @@ import Forum from '../../../components/Forum.astro'
 
 ## 常见问题
 
-<LinkCard title="这合法吗？" href="/zh/faq/#这合法吗" description="许可协议说了什么、没说什么，以及这个问题的责任在谁。" />
+<LinkCard title="这样做合法吗？" href="/zh/faq/#这样做合法吗" description="许可协议说了什么、没说什么，以及这个问题的责任在谁。" />
 <LinkCard title="能下载无水印的视频吗？" href="/zh/faq/#能下载无水印的视频吗" description="平台提供无水印流的时候可以 —— 以及这句话的准确含义。" />
-<LinkCard title="需要我自己账号的 cookie 吗？" href="/zh/faq/#需要我自己账号的-cookie-吗" description="不需要。游客身份是自动铸造的；你自己的 cookie 能让它看到更多。" />
-<LinkCard title="需要代理吗？" href="/zh/faq/#需要代理吗" description="完全取决于你的吞吐量。带数字的实话。" />
-<LinkCard title="支持 B 站、小红书、快手、微博吗？" href="/zh/faq/#支持-b-站小红书快手微博吗" description="暂时不支持，以及架构上为什么给它们留了位置。" />
+<LinkCard title="需要用我自己账号的 Cookie 吗？" href="/zh/faq/#需要用我自己账号的-cookie-吗" description="不需要。游客身份是自动铸造的；你自己的 cookie 能让它看到更多。" />
+<LinkCard title="一定要用代理吗？" href="/zh/faq/#一定要用代理吗" description="完全取决于你的吞吐量。带数字的实话。" />
+<LinkCard title="能拿到实况图（Live Photo）的视频吗？" href="/zh/faq/#能拿到实况图live-photo的视频吗" description="能：抖音实况图集的每一张都带着它那段视频，下载时存在对应图片旁边。" />
+<LinkCard title="它究竟能抓哪些东西？" href="/zh/faq/#它究竟能抓哪些东西" description="每个平台能读的每一类数据，以及游客身份在各平台能拿到什么。" />
+<LinkCard title="支持 B 站、小红书、快手或微博吗？" href="/zh/faq/#支持-b-站小红书快手或微博吗" description="B 站从 5.1.6 起支持。其他平台暂时不支持，以及架构上为什么给它们留了位置。" />
 
 ## 谁在为它买单
 
@@ -221,6 +236,7 @@ TikHub 付费出现在这一页上，这个项目才得以保持免费和 Apache
   <LinkCard title="安装与部署" href="/zh/installation/" description="compose 逐个服务讲解、全部变量、反向代理，以及不用 Docker 的装法。" />
   <LinkCard title="REST API 指南" href="/zh/api/" description="认证、统一信封、异步任务模型、翻页与错误处理。" />
   <LinkCard title="MCP 与 AI agent" href="/zh/mcp/" description="把 Claude Code、Claude Desktop 或任何 MCP 客户端接到自己的实例上。" />
+  <LinkCard title="离线转写模型" href="/zh/funasr-models/" description="转写服务读取的 FunASR 模型：从哪里来、怎么校验。" />
 </CardGrid>
 
 ---
