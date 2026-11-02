@@ -8,6 +8,12 @@
 FROM node:22-alpine AS build
 WORKDIR /app
 
+# sync-docs.mjs dates every page from git history - the sitemap's `lastmod`
+# and the page's "Last updated" - and node:alpine has no git. Without it the
+# dates were silently left out of the first image that carried them, while a
+# build on a workstation, which has git, had them all. Build stage only.
+RUN apk add --no-cache git
+
 # Dependencies first, so a documentation change does not reinstall them.
 COPY package.json package-lock.json ./
 RUN npm ci
