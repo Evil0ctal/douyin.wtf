@@ -1,7 +1,23 @@
 // @ts-check
+import { readFileSync } from 'node:fs'
 import sitemap from '@astrojs/sitemap'
 import starlight from '@astrojs/starlight'
 import { defineConfig } from 'astro/config'
+
+/**
+ * When each page's source last changed, written by scripts/sync-docs.mjs from
+ * git history. Without `lastmod` a sitemap tells a crawler which pages exist
+ * and nothing about which ones to fetch again. Empty - and the sitemap simply
+ * dateless, as it was - when the sync has not run.
+ */
+function readLastmod() {
+  try {
+    return JSON.parse(readFileSync(new URL('./src/data/lastmod.json', import.meta.url), 'utf8'))
+  } catch {
+    return {}
+  }
+}
+const LASTMOD = readLastmod()
 
 /**
  * The site exists to be indexed. Everything here that looks like ceremony is
@@ -193,6 +209,10 @@ export default defineConfig({
       i18n: {
         defaultLocale: 'en',
         locales: { en: 'en', zh: 'zh-CN' },
+      },
+      serialize(item) {
+        const modified = LASTMOD[new URL(item.url).pathname]
+        return modified ? { ...item, lastmod: modified } : item
       },
     }),
   ],

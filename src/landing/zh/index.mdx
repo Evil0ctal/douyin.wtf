@@ -23,10 +23,19 @@ head:
     attrs:
       property: og:type
       content: website
+  # Open Graph wants language_TERRITORY; Starlight writes `zh-CN`.
+  - tag: meta
+    attrs:
+      property: og:locale
+      content: zh_CN
   - tag: meta
     attrs:
       property: og:locale:alternate
-      content: en
+      content: en_US
+  - tag: meta
+    attrs:
+      property: og:image:alt
+      content: Douyin_TikTok_Download_API 控制台：身份池，以及每个身份实时的健康度和冷却状态
   - tag: script
     attrs:
       type: application/ld+json

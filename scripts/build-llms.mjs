@@ -20,29 +20,36 @@ const DOCS = join(ROOT, 'src', 'content', 'docs')
 const DIST = join(ROOT, 'dist')
 const SITE = 'https://douyin.wtf'
 
-const SUMMARY = `> A self-hosted data API for Douyin (抖音) and TikTok. One \`docker compose up\`
-> gives you a REST API, an MCP server and a web console, backed by an identity
-> pool (cookies + proxies + fingerprints) that mints, tests, cools and retires
-> its own identities. Open source (Apache-2.0), free, and it runs entirely on
-> your own machine - there is no hosted tier and nothing is proxied through a
-> third party.
+const UPSTREAM_LLMS = join(ROOT, 'vendor', 'upstream', 'llms.txt')
 
-Built with Python 3.12, FastAPI, PostgreSQL + TimescaleDB and Redis; the console
-is React. It fetches posts, authors, comments, mixes and search from both
-platforms, downloads video and image albums using the watermark-free stream the
-platform already publishes (it selects that stream, it does not strip a
-watermark), and archives what it collects so a post deleted upstream is still
-readable locally.
-
-Signing is native Python - \`a_bogus\`, \`X-Bogus\` and the TikTok signatures are
-implemented in-process rather than driven through a browser - with a headless
-browser kept as a fallback and as a drift detector.
-
-Source: <https://github.com/Evil0ctal/Douyin_TikTok_Download_API>
+/** What closes the summary here: where the code lives and where to try it. */
+const SITE_LINES = `Source: <https://github.com/Evil0ctal/Douyin_TikTok_Download_API>
 Live demo: <https://demo.douyin.wtf> (30 requests per 10 seconds, then a 10-second cooldown)
 
 Every page below exists in English and Simplified Chinese and the two say the
 same thing.`
+
+/**
+ * The project summary, taken from upstream's own `llms.txt`: everything between
+ * its title and its first section, minus the closing paragraph about the file
+ * itself, which is replaced by this site's lines.
+ *
+ * It used to be a copy typed in here. The project added Bilibili, then
+ * transcription, then live reads, and the copy kept saying "Douyin and TikTok"
+ * to every model that read this site - while upstream's summary, which the
+ * project does keep current, said otherwise. Falls back to a bare line rather
+ * than failing the build: the page index below is the part a reader needs.
+ */
+async function summary() {
+  const text = await readFile(UPSTREAM_LLMS, 'utf8').catch(() => '')
+  const match = /^# [^\n]*\n+([\s\S]*?)\n## /m.exec(text)
+  const body = (match?.[1] ?? '')
+    .split(/\n\s*\n/)
+    .filter((block) => !block.startsWith('This file follows'))
+    .join('\n\n')
+    .trim()
+  return `${body || '> A self-hosted data API for Douyin, TikTok and Bilibili.'}\n\n${SITE_LINES}`
+}
 
 /** Frontmatter is small and predictable here, so a full YAML parser is overkill. */
 function readFrontmatter(text) {
@@ -85,6 +92,7 @@ async function pagesFor(locale) {
 async function main() {
   const en = await pagesFor('en')
   const zh = await pagesFor('zh')
+  const SUMMARY = await summary()
 
   const index = [
     '# Douyin_TikTok_Download_API',
@@ -101,7 +109,7 @@ async function main() {
     '',
     '## Optional',
     '',
-    `- [Full text of every page](${SITE}/llms-full.txt): All thirty-four pages concatenated, for a model that would rather read once than crawl.`,
+    `- [Full text of every page](${SITE}/llms-full.txt): All ${en.length + zh.length} pages concatenated, for a model that would rather read once than crawl.`,
     '- [Releases](https://github.com/Evil0ctal/Douyin_TikTok_Download_API/releases): Bilingual release notes, with the git tag and the image tag listed side by side.',
     '- [Docker images](https://hub.docker.com/r/evil0ctal/douyin_tiktok_download_api): A release tag has no leading `v`: the git tag `v5.0.1` publishes the image `5.0.1`.',
     '',

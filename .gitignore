@@ -23,3 +23,6 @@ public/logo/reer.png
 .env
 .env.*
 !.env.example
+
+# Written by scripts/sync-docs.mjs from git history on every build.
+src/data/lastmod.json

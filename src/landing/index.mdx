@@ -23,6 +23,12 @@ head:
     attrs:
       property: og:type
       content: website
+  # Open Graph wants language_TERRITORY. Starlight writes the page language,
+  # `en`, which a strict parser reads as no locale at all.
+  - tag: meta
+    attrs:
+      property: og:locale
+      content: en_US
   - tag: meta
     attrs:
       property: og:locale:alternate
@@ -52,6 +58,20 @@ head:
         "author": { "@type": "Person", "name": "Evil0ctal", "url": "https://github.com/Evil0ctal" },
         "maintainer": { "@type": "Person", "name": "Evil0ctal", "url": "https://github.com/Evil0ctal" },
         "description": "A self-hosted data API for Douyin, TikTok and Bilibili. REST, MCP and a web console, with a self-maintaining identity pool, a PostgreSQL archive, native request signing, watermark-free downloads and offline speech to text."
+      }
+  # The site itself, on its home page, which is where Google looks for the name
+  # to show above a result instead of the bare domain.
+  - tag: script
+    attrs:
+      type: application/ld+json
+    content: |
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Douyin_TikTok_Download_API",
+        "alternateName": ["DTK", "douyin.wtf"],
+        "url": "https://douyin.wtf/",
+        "inLanguage": ["en", "zh-CN"]
       }
 ---
 
