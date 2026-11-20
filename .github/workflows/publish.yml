@@ -107,6 +107,16 @@ jobs:
             type=raw,value=latest
             type=sha,format=long
 
+      # Unauthenticated, the GitHub API refuses a shared runner address, and the
+      # build kept old figures: the site said 5.1.8 two releases on. Read here,
+      # outside the image build, so the job's token reaches only this script -
+      # Node built-ins and no packages - and never npm's few hundred. The
+      # build's own `npm run stats` keeps these figures when it is refused.
+      - name: Read the project's figures
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/fetch-stats.mjs
+
       - name: Build and push
         uses: docker/build-push-action@v7
         with:
@@ -114,11 +124,6 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          # For the GitHub API in fetch-stats.mjs. Unauthenticated, a shared
-          # runner address is refused and the site keeps old figures - it said
-          # 5.1.8 two releases on.
-          secrets: |
-            github_token=${{ secrets.GITHUB_TOKEN }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           # amd64 only: this image is pulled by exactly one machine and that

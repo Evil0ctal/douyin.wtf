@@ -29,22 +29,17 @@ const IMAGES = [
 const TIMEOUT_MS = 8000
 
 /**
- * The workflow's token, when the build was handed one.
+ * The workflow's token, when this runs as its own step.
  *
  * Unauthenticated, the GitHub API allows 60 requests an hour per address, and
  * an Actions runner shares its address with everybody else's builds: from
  * 2026-11-02 every build was refused with a 403 and kept that day's figures,
- * so the 5.1.12 site still said 5.1.8. CI passes GITHUB_TOKEN as a BuildKit
- * secret (`/run/secrets/github_token`), which never lands in an image layer;
- * a local build without one still works, unauthenticated.
+ * so the 5.1.12 site still said 5.1.8. The publish workflow runs this script
+ * before the image build with GITHUB_TOKEN set - never inside it, where npm's
+ * packages would see the token. Without one it asks unauthenticated.
  */
-async function githubToken() {
-  if (process.env.GITHUB_TOKEN) return process.env.GITHUB_TOKEN.trim()
-  try {
-    return (await readFile('/run/secrets/github_token', 'utf8')).trim()
-  } catch {
-    return ''
-  }
+function githubToken() {
+  return (process.env.GITHUB_TOKEN ?? '').trim()
 }
 
 async function getJson(url, token = '') {
@@ -58,7 +53,7 @@ async function getJson(url, token = '') {
 }
 
 async function collect() {
-  const token = await githubToken()
+  const token = githubToken()
   const repo = await getJson(`https://api.github.com/repos/${REPO}`, token)
   const release = await getJson(`https://api.github.com/repos/${REPO}/releases/latest`, token)
 
