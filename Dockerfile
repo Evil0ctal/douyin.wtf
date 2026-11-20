@@ -22,7 +22,10 @@ RUN npm ci
 # out with submodules or this directory is empty - `sync-docs.mjs` fails loudly
 # in that case rather than publishing a site with no pages in it.
 COPY . .
-RUN npm run build
+# The workflow's GITHUB_TOKEN, as a secret mount: it lets fetch-stats.mjs past
+# the API's per-address limit and is never written into a layer. Optional, so a
+# local `docker build` with no secret still builds, on the committed figures.
+RUN --mount=type=secret,id=github_token,required=false npm run build
 
 
 FROM nginx:1.29-alpine AS runtime

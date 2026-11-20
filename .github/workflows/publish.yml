@@ -114,6 +114,11 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          # For the GitHub API in fetch-stats.mjs. Unauthenticated, a shared
+          # runner address is refused and the site keeps old figures - it said
+          # 5.1.8 two releases on.
+          secrets: |
+            github_token=${{ secrets.GITHUB_TOKEN }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           # amd64 only: this image is pulled by exactly one machine and that

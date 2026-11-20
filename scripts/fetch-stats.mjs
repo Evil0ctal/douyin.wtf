@@ -28,19 +28,39 @@ const IMAGES = [
 /** Give up quickly: this is decoration on a page that must still build. */
 const TIMEOUT_MS = 8000
 
-async function getJson(url) {
+/**
+ * The workflow's token, when the build was handed one.
+ *
+ * Unauthenticated, the GitHub API allows 60 requests an hour per address, and
+ * an Actions runner shares its address with everybody else's builds: from
+ * 2026-11-02 every build was refused with a 403 and kept that day's figures,
+ * so the 5.1.12 site still said 5.1.8. CI passes GITHUB_TOKEN as a BuildKit
+ * secret (`/run/secrets/github_token`), which never lands in an image layer;
+ * a local build without one still works, unauthenticated.
+ */
+async function githubToken() {
+  if (process.env.GITHUB_TOKEN) return process.env.GITHUB_TOKEN.trim()
+  try {
+    return (await readFile('/run/secrets/github_token', 'utf8')).trim()
+  } catch {
+    return ''
+  }
+}
+
+async function getJson(url, token = '') {
   const stop = AbortSignal.timeout(TIMEOUT_MS)
-  const response = await fetch(url, {
-    signal: stop,
-    headers: { accept: 'application/json', 'user-agent': 'douyin.wtf build' },
-  })
+  const headers = { accept: 'application/json', 'user-agent': 'douyin.wtf build' }
+  // Only ever to GitHub's API: Docker Hub has no use for it.
+  if (token && url.startsWith('https://api.github.com/')) headers.authorization = `Bearer ${token}`
+  const response = await fetch(url, { signal: stop, headers })
   if (!response.ok) throw new Error(`${url} answered ${response.status}`)
   return response.json()
 }
 
 async function collect() {
-  const repo = await getJson(`https://api.github.com/repos/${REPO}`)
-  const release = await getJson(`https://api.github.com/repos/${REPO}/releases/latest`)
+  const token = await githubToken()
+  const repo = await getJson(`https://api.github.com/repos/${REPO}`, token)
+  const release = await getJson(`https://api.github.com/repos/${REPO}/releases/latest`, token)
 
   let pulls = 0
   for (const image of IMAGES) {
